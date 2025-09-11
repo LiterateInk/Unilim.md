@@ -10,7 +10,6 @@ Make a single request to `https://cas.unilim.fr/`, dump the HTML.
 You have to read the HTML to query an hidden input containing
 an CSRF token, `input#token`.
 
-
 Once you have the CSRF token, you can use it to authenticate.
 
 ```
@@ -18,13 +17,11 @@ POST https://cas.unilim.fr/
 Content-Type: application/x-www-form-urlencoded
 ```
 
-| Key        | Value | Description |
-| ---------- | ----- | ----------- |
-<!-- | `url`      | (empty) | The URL to redirect to after authentication, useless here. | -->
-<!-- | `skin`     | `unilim` | Skin used for the login page, useless but probably required. | -->
-| `token`    | `1743557998_38739` | The CSRF token you found in the HTML earlier. |
-| `user`     | (your unilim username) | Your username. |
-| `password` | (your unilim password) | Your password. |
+| Key        | Value                  | Description                                   |
+| ---------- | ---------------------- | --------------------------------------------- |
+| `token`    | `1743557998_38739`     | The CSRF token you found in the HTML earlier. |
+| `user`     | (your unilim username) | Your username.                                |
+| `password` | (your unilim password) | Your password.                                |
 
 > Remember to URL encode the values since we're sending `application/x-www-form-urlencoded`.
 
@@ -67,13 +64,12 @@ POST https://cas.unilim.fr/2fchoice
 Content-Type: application/x-www-form-urlencoded
 ```
 
-| Key             | Value | Description |
-| --------------- | ----- | ----------- |
+| Key             | Value              | Description                                   |
+| --------------- | ------------------ | --------------------------------------------- |
 | `token`         | `1743558786_11984` | The CSRF token you found in the HTML earlier. |
-| `sf`            | `totp` or `mail` | The method you want to use. |
-<!-- | `skin`          | `unilim` | Skin used for the login page, useless but probably required. |
-| `checkLogins`   | (empty) | Pretty useless to us. |
-| `stayconnected` | (empty) | Not sure how this should be implemented. | -->
+| `sf`            | `totp` or `mail`   | The method you want to use.                   |
+| `checkLogins`   | (empty)            | Pretty useless to us.                         |
+| `stayconnected` | (empty)            | Not sure how this should be implemented.      |
 
 If anything goes wrong, make sure to [check the error codes](#handle-errors).
 
@@ -84,7 +80,6 @@ an CSRF token, `input#token`.
 
 ### TOTP
 
-
 ### Email
 
 ```
@@ -92,10 +87,10 @@ POST https://cas.unilim.fr/mail2fcheck?skin=unilim
 Content-Type: application/x-www-form-urlencoded
 ```
 
-| Key             | Value | Description |
-| --------------- | ----- | ----------- |
-| `token`         | `1743559821_49787` | The CSRF token you found in the HTML earlier. |
-| `code`          | (your 2FA code) | The 2FA code you received by email. |
+| Key     | Value              | Description                                   |
+| ------- | ------------------ | --------------------------------------------- |
+| `token` | `1743559821_49787` | The CSRF token you found in the HTML earlier. |
+| `code`  | (your 2FA code)    | The 2FA code you received by email.           |
 
 If it goes well, you should receive a **302 Found** response and you can
 move on directly to the [handle login response](#handle-login-response) section.
@@ -119,11 +114,11 @@ When an error occurs, the server will return an HTML page containing the error m
 You can find the error code in the HTML page by querying the `span[trmsg]` tag,
 the error code is the number contained in the `trmsg` attribute.
 
-| Error code | Description |
-| ---------- | ----------- |
-| `2`        | User and password fields must be filled. |
-| `5`        | Wrong credentials. |
-| `81`       | Invalid authentication attempt. |
-| `82`       | Exceeded authentication timeout. |
+| Error code | Description                               |
+| ---------- | ----------------------------------------- |
+| `2`        | User and password fields must be filled.  |
+| `5`        | Wrong credentials.                        |
+| `81`       | Invalid authentication attempt.           |
+| `82`       | Exceeded authentication timeout.          |
 | `86`       | Your account is locked, you have to wait. |
-| `96`       | Invalid verification code. |
+| `96`       | Invalid verification code.                |
