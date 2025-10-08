@@ -1,0 +1,80 @@
+---
+title: Installation
+description: Get ready to install and use Unilim.
+next: false
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+<Tabs>
+  <TabItem label=".ts">
+    <Tabs>
+      <TabItem label="bun">
+      ```bash
+      bun add unilim
+      ```
+      </TabItem>
+      <TabItem label="pnpm">
+      ```bash
+      pnpm add unilim
+      ```
+      </TabItem>
+      <TabItem label="yarn">
+      ```bash
+      yarn add unilim
+      ```
+      </TabItem>
+      <TabItem label="npm">
+      ```bash
+      npm add unilim
+      ```
+      </TabItem>
+    </Tabs>
+
+
+    <Tabs>
+      <TabItem label="Node.js, Deno, Bun">
+        {/* Keep this empty, so it says that we're good to go! */}
+      </TabItem>
+      <TabItem label="React Native">
+        You can opt in native requests by installing the package [`react-native-real-fetch`](https://github.com/Vexcited/react-native-real-fetch),
+        if you're running issues without it, you might have to install this, especially for `unilim/iut/signatures` subpackage.
+
+        <Tabs>
+          <TabItem label="Expo">
+          ```bash
+          npx expo add react-native-real-fetch react-native-nitro-modules
+          npx expo prebuild
+          ```
+          </TabItem>
+          <TabItem label="Bare">
+          ```bash
+          npm add react-native-real-fetch react-native-nitro-modules
+          cd ios && pod install
+          ```
+          </TabItem>
+        </Tabs>
+      </TabItem>
+      <TabItem label="Tauri">
+        You should setup [Tauri's HTTP plugin](https://tauri.app/plugin/http-client/) and add the following allowed URL to the permissions.
+        ```json
+        {
+          "permissions": [
+            {
+              "identifier": "http:default",
+              "allow": [{ "url": "*://*.unilim.fr/*" }],
+            }
+          ]
+        }
+        ```
+      </TabItem>
+    </Tabs>
+  </TabItem>
+  <TabItem label=".rs">
+  ```bash
+  cargo add unilim
+  ```
+  </TabItem>
+</Tabs>
+
+You're ready to go!
