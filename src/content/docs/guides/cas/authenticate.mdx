@@ -95,7 +95,7 @@ As a side note, if the 2FA was already solved both properties will be falsy, by 
   </TabItem>
   <TabItem label=".rs">
     ```rust
-    auth.solve_with_totp("123456").await?;
+    auth.solve_with_totp("123456".into()).await?;
     ```
   </TabItem>
 </Tabs>
@@ -120,7 +120,7 @@ the code received.
   <TabItem label=".rs">
     ```rust
     auth.send_email_code().await?;
-    auth.solve_with_email_code("123456").await?;
+    auth.solve_with_email_code("123456".into()).await?;
     ```
   </TabItem>
 </Tabs>
@@ -140,6 +140,75 @@ Let's exchange our authentication session with an authenticated CAS instance.
   <TabItem label=".rs">
     ```rust
     let cas = auth.finish().await?;
+    ```
+  </TabItem>
+</Tabs>
+
+## Restore
+
+Once your session has expired, you'll have to create a new one.
+Using the previously created session, you can make up a new one without
+having to solve 2FA manually, thanks to the [`TrustedBrowser` plugin](https://gitlab.ow2.org/lemonldap-ng/lemonldap-ng/-/blob/v2.0/lemonldap-ng-portal/lib/Lemonldap/NG/Portal/Plugins/TrustedBrowser.pm) they enabled.
+
+You'll need the cookie `llngconnection` and a key, generated on first authentication,
+that you can retrieve using the following on an authenticated `CAS` instance.
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    const llngconnection: string = cas.connection; // <- the cookie
+    const key: string = cas.key; // <- the linked totp key
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    let llngconnection: String = cas.connection; // <- the cookie
+    let key: String = cas.key; // <- the linked totp key
+    ```
+  </TabItem>
+</Tabs>
+
+You'll still need `username` and `password` since this is not a refresh token.
+It is only kind of a 2FA bypass.
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    const cas: CAS = await CAS.restore(
+      "username", "password", // <- the usual you'd give in initialize()
+      llngconnection, key     // <- the variables we retrieved
+    );
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    let auth: CAS = CAS::restore(
+      "username", "password", // <- the usual you'd give in initialize()
+      llngconnection, key     // <- the variables we retrieved
+    ).await?;
+    ```
+  </TabItem>
+</Tabs>
+
+As you can see, we get directly a `CAS` instance and we don't have to
+deal with `PendingLogin` anymore.
+
+> Their cookie `llngconnection` is available for one month, after this
+> it'll be expired and you'll have to go through a manual 2FA solve once again.
+
+## Temporary
+
+You can create a temporary CAS instance by providing a `lemonldap` cookie value.
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    const cas: CAS = CAS.temporary("value");
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    let cas: CAS = CAS::temporary("value".into());
     ```
   </TabItem>
 </Tabs>
