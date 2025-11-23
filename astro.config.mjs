@@ -34,6 +34,10 @@ export default defineConfig({
                 autogenerate: { directory: "guides/getting-started" },
               },
               {
+                label: "CAS",
+                autogenerate: { directory: "guides/cas" },
+              },
+              {
                 label: "Examples",
                 autogenerate: { directory: "guides/examples" },
               },
