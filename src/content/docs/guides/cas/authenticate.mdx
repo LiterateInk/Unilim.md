@@ -1,0 +1,145 @@
+---
+title: Authenticate
+description: Authenticate to Unilim CAS
+prev: true
+next: false
+---
+
+import { Tabs, TabItem } from "@astrojs/starlight/components";
+
+## Initialize
+
+Let's try to authenticate to `cas.unilim.fr` using the given credentials.
+Doing the following will create a new authentication session on their end,
+thanks to [LemonLDAP::NG](https://lemonldap-ng.org/).
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    import { CAS, type PendingLogin } from "unilim/cas";
+    const auth: PendingLogin = await CAS.initialize("username", "password");
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    use unilim::cas::{ CAS, PendingLogin };
+    let auth: PendingLogin = CAS::initialize("username", "password").await?;
+    ```
+  </TabItem>
+</Tabs>
+
+Once a session has been initialized, you'll end up with a `PendingLogin` instance.
+This is an intermediary step where you have to resolve a 2FA challenge if `solved` property is falsy.
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    if (!auth.solved) {
+      // You have to solve 2FA, check the "Resolve 2FA" section below.
+    }
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    if !auth.solved {
+      // You have to solve 2FA, check the "Resolve 2FA" section below.
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+## Resolve 2FA
+
+You'll be asked to resolve a 2FA challenge when `solved` is falsy on `PendingLogin`.
+This challenge can be either resolved through an email code or a previously registered TOTP code.
+
+> This library **does not** support the case where you don't have any
+> 2FA method attached to your account - they might prompt you to add one - so please add a 2FA method.
+
+You might want to know which 2FA option is available, if you don't know.
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    if (auth.isTotpAvailable) {
+      // You can use TOTP method.
+    }
+
+    if (auth.isEmailAvailable) {
+      // You can use the email code method.
+    }
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    if auth.is_totp_available {
+      // You can use TOTP method.
+    }
+
+    if auth.is_email_available {
+      // You can use the email code method.
+    }
+    ```
+  </TabItem>
+</Tabs>
+
+As a side note, if the 2FA was already solved both properties will be falsy, by default.
+
+### TOTP
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    await auth.solveWithTotp("123456");
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    auth.solve_with_totp("123456").await?;
+    ```
+  </TabItem>
+</Tabs>
+
+You're done! You can go ahead to the [finish section](#finish).
+
+### Email
+
+This is split into two methods, one to send the email and the other to input
+the code received.
+
+> You **must not** call the [TOTP method](#totp) after
+> calling the method to send an email, otherwise it'll fail.
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    await auth.sendEmailCode();
+    await auth.solveWithEmailCode("123456");
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    auth.send_email_code().await?;
+    auth.solve_with_email_code("123456").await?;
+    ```
+  </TabItem>
+</Tabs>
+
+You're done! You can go ahead to the [finish section](#finish).
+
+## Finish
+
+Let's exchange our authentication session with an authenticated CAS instance.
+
+<Tabs>
+  <TabItem label=".ts">
+    ```typescript
+    const cas = await auth.finish();
+    ```
+  </TabItem>
+  <TabItem label=".rs">
+    ```rust
+    let cas = auth.finish().await?;
+    ```
+  </TabItem>
+</Tabs>
