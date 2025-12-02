@@ -60,6 +60,10 @@ export default defineConfig({
                 label: "Rust",
                 link: "https://docs.rs/unilim/",
               },
+              {
+                label: "Swift",
+                link: "https://swift.unilim.docs.literate.ink/documentation/",
+              },
             ],
           },
         ]),
