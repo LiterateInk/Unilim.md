@@ -16,19 +16,25 @@ thanks to [LemonLDAP::NG](https://lemonldap-ng.org/).
 <Tabs>
   <TabItem label=".ts">
     ```typescript
-    import { CAS, type PendingLogin } from "unilim/cas";
-    const auth: PendingLogin = await CAS.initialize("username", "password");
+    import { CAS, type PendingAuth } from "unilim/cas";
+    const auth: PendingAuth = await CAS.initialize("username", "password");
     ```
   </TabItem>
   <TabItem label=".rs">
     ```rust
-    use unilim::cas::{ CAS, PendingLogin };
-    let auth: PendingLogin = CAS::initialize("username", "password").await?;
+    use unilim::cas::{ CAS, PendingAuth };
+    let auth: PendingAuth = CAS::initialize("username", "password").await?;
+    ```
+  </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    import UnilimCAS
+    var auth: PendingAuth = try await CAS.initialize(username: "username", password: "password")
     ```
   </TabItem>
 </Tabs>
 
-Once a session has been initialized, you'll end up with a `PendingLogin` instance.
+Once a session has been initialized, you'll end up with a `PendingAuth` instance.
 This is an intermediary step where you have to resolve a 2FA challenge if `solved` property is falsy.
 
 <Tabs>
@@ -46,11 +52,18 @@ This is an intermediary step where you have to resolve a 2FA challenge if `solve
     }
     ```
   </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    if !auth.solved {
+      // You have to solve 2FA, check the "Resolve 2FA" section below.
+    }
+    ```
+  </TabItem>
 </Tabs>
 
 ## Resolve 2FA
 
-You'll be asked to resolve a 2FA challenge when `solved` is falsy on `PendingLogin`.
+You'll be asked to resolve a 2FA challenge when `solved` is falsy on `PendingAuth`.
 This challenge can be either resolved through an email code or a previously registered TOTP code.
 
 > This library **does not** support the case where you don't have any
@@ -81,6 +94,17 @@ You might want to know which 2FA option is available, if you don't know.
     }
     ```
   </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    if auth.isTotpAvailable {
+      // You can use TOTP method.
+    }
+
+    if auth.isEmailAvailable {
+      // You can use the email code method.
+    }
+    ```
+  </TabItem>
 </Tabs>
 
 As a side note, if the 2FA was already solved both properties will be falsy, by default.
@@ -96,6 +120,11 @@ As a side note, if the 2FA was already solved both properties will be falsy, by 
   <TabItem label=".rs">
     ```rust
     auth.solve_with_totp("123456".into()).await?;
+    ```
+  </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    try await auth.solveWithTotp(totp: "123456")
     ```
   </TabItem>
 </Tabs>
@@ -123,6 +152,12 @@ the code received.
     auth.solve_with_email_code("123456".into()).await?;
     ```
   </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    try await auth.sendEmailCode()
+    try await auth.solveWithEmailCode(code: "123456")
+    ```
+  </TabItem>
 </Tabs>
 
 You're done! You can go ahead to the [finish section](#finish).
@@ -134,12 +169,17 @@ Let's exchange our authentication session with an authenticated CAS instance.
 <Tabs>
   <TabItem label=".ts">
     ```typescript
-    const cas = await auth.finish();
+    const cas: CAS = await auth.finish();
     ```
   </TabItem>
   <TabItem label=".rs">
     ```rust
-    let cas = auth.finish().await?;
+    let cas: CAS = auth.finish().await?;
+    ```
+  </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    let cas: CAS = try await auth.finish()
     ```
   </TabItem>
 </Tabs>
@@ -166,6 +206,12 @@ that you can retrieve using the following on an authenticated `CAS` instance.
     let key: String = cas.key; // <- the linked totp key
     ```
   </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    let llngconnection: String = cas.connection; // <- the cookie
+    let key: String = cas.key; // <- the linked totp key
+    ```
+  </TabItem>
 </Tabs>
 
 You'll still need `username` and `password` since this is not a refresh token.
@@ -182,16 +228,24 @@ It is only kind of a 2FA bypass.
   </TabItem>
   <TabItem label=".rs">
     ```rust
-    let auth: CAS = CAS::restore(
+    let cas: CAS = CAS::restore(
       "username", "password", // <- the usual you'd give in initialize()
       llngconnection, key     // <- the variables we retrieved
     ).await?;
     ```
   </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    let cas: CAS = try await CAS.restore(
+      username: "username", password: "password",  // <- the usual you'd give in initialize()
+      llngconnection: llngconnection, key: key     // <- the variables we retrieved
+    )
+    ```
+  </TabItem>
 </Tabs>
 
 As you can see, we get directly a `CAS` instance and we don't have to
-deal with `PendingLogin` anymore.
+deal with `PendingAuth` anymore.
 
 > Their cookie `llngconnection` is available for one month, after this
 > it'll be expired and you'll have to go through a manual 2FA solve once again.
@@ -209,6 +263,11 @@ You can create a temporary CAS instance by providing a `lemonldap` cookie value.
   <TabItem label=".rs">
     ```rust
     let cas: CAS = CAS::temporary("value".into());
+    ```
+  </TabItem>
+  <TabItem label=".swift">
+    ```swift
+    let cas: CAS = CAS.temporary(cookie: "value")
     ```
   </TabItem>
 </Tabs>
